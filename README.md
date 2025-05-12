@@ -1,5 +1,5 @@
 This is an old project and does not describe my products.
-
+---
 # Student-Servant System
 
 This project is a Student-Servant System for managing student information, providing a notepad-like feature, calendar functionalities, and more. It uses Python, Flask, SQL, and frontend technologies like HTML, CSS, and JavaScript.
