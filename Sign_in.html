@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student System</title>
+    <link rel="stylesheet" href="loginsignin.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Sign up</h1>
+        <div class="registrationForm">
+            <h2 class="succes"></h2>
+            <form id="StudentForm">
+                <input type="text" id="name" name="name" placeholder="Username" required><br>
+                <input type="email" id="email" name="email" placeholder="Email" required><br>
+                <input type="password" id="password" name="password" placeholder="Password" required><br>
+                <button type="submit">Sign up</button>
+                <a href="forget_password.html" class="secret">Forget your password?</a>
+                <a href="Log_in.html">Or, log in</a>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById("StudentForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+            document.querySelector('.succes').style.color = "green";
+            document.querySelector('.succes').textContent = 'Wait a minut....';
+            document.querySelector('.succes').style.display = "block";
+
+            const formData = new FormData(event.target);
+            const data = {
+                name: formData.get('name'),
+                email: formData.get('email'),
+                password: formData.get('password')
+            };
+
+            fetch("http://127.0.0.1:5000/api-enter", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message == "Succes!") {
+                    window.location.href = 'id_code_section.html';
+                }
+                document.querySelector('.succes').textContent = data.error;
+                document.querySelector('.succes').style.color = "red";
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                alert("Error!");
+            });
+        });
+    </script>
+</body>
+</html>

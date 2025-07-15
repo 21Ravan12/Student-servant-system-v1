@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Acount</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+
+
+
+h4{
+    padding-left: 20px;
+    color: black;
+}
+#footer_1 {
+    background: black;
+    color: #fff;
+    text-align: center;
+    padding: 20px;
+    margin-top: 80px;
+  }
+  </style>
+</head>
+<body>
+<header>
+    <div class="logo">
+        <a href="#home">MyWebsite</a>
+    </div>
+    <nav>
+        <ul class="nav-links">
+            <li><a href="Main.html">Home</a></li>
+            <li><a href="about.html">About</a></li>
+            <li><a href="services.html">Services</a></li>
+            <li><a href="contact.html">Contact</a></li>
+            <li><a href="Acount.html" class="cta-button">Acount</a></li>
+        </ul>
+    </nav>
+    
+    <div class="hamburger" id="hamburger">
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+</header>
+<main style=" padding-top: 80px; align-items: cente;">
+    <div style="background-color: white; display: block; justify-self: center; width: 300px;
+    border-radius: 10px;  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);">
+    <br><br>
+     <h1 style="justify-self: center; text-align: center; width: 300px;">My Acount</h1><br><br>
+     <h4 id="id">id: </h4><br>
+     <h4 id="name">Name: </h4><br>
+     <h4 id="email">Email: </h4><br>
+     <h4 id="password">Password: </h4><br>
+    </div>
+</main>  
+<footer id="footer_1">
+    <p>&copy; 2024 Your Name. All Rights Reserved.</p>
+</footer>
+
+<script>
+    fetch("http://127.0.0.1:5000/data")
+    .then(Response => Response.json())
+    .then(data => {
+        const email=data.email;
+        const password=data.password;
+        const name=data.name;
+        const id=data.id;
+        document.getElementById('id').textContent='id: '+id;
+        document.getElementById('name').textContent='Name: '+name;
+        document.getElementById('email').textContent='Email: '+email;
+        document.getElementById('password').textContent='Password: '+password;
+    })
+    .catch(error => {
+                console.error("Error:", error);
+                alert("Error!", error);
+            });
+    
+    
+</script>
+<script src="script.js"></script>
+</body>
+</html>

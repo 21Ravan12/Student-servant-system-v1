@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Notepad</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        .notepad-container {
+            width: 80%;
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        textarea {
+            width: 100%;
+            height: 200px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            resize: vertical;
+            background-color: #f9f9f9;
+            color: #333;
+            box-sizing: border-box;
+        }
+
+        .buttons-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            background-color: #4CAF50;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .save-button {
+            background-color: #007BFF;
+        }
+
+        .save-button:hover {
+            background-color: #0056b3;
+        }
+
+        .note {
+            color: green;
+            font-size: 30px;
+            margin-top: 20px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            width: 60%;
+            justify-self: center;
+            display: flex;
+        }
+        
+    </style>
+</head>
+<body>
+<div class="notepad-container"><button onclick="window.location.href='services.html'">Return</button></div>
+<div class="notepad-container">
+    <h1 style="margin-top: 0px;">Simple Notepad</h1>
+    <textarea id="notepad" placeholder="Start typing your notes..."></textarea>
+    <div class="buttons-container">
+        <button class="save-button" id="save-btn" onclick="saveText()">Save</button>
+        <button onclick="clearText()">Clear</button>
+    </div>
+</div>
+
+<div id="saved-notes-container"></div>
+
+<script>
+const saveButton = document.getElementById("save-btn");
+const textarea = document.getElementById("notepad");
+const savedNotesContainer = document.getElementById("saved-notes-container");
+let userId;
+let noteCount;
+
+// Fetch the unique user ID
+async function fetchId() {
+    try {
+        const response = await fetch("http://127.0.0.1:5000/data");
+        const data = await response.json();
+        if (response.ok) {
+            userId = data.id;
+            return true;
+        } else {
+            throw new Error(data.error || "Failed to fetch user ID.");
+        }
+    } catch (error) {
+        console.error("Error fetching ID:", error);
+        alert("Error fetching user ID!");
+        return false;
+    }
+}
+
+// Fetch the total note count
+async function fetchNoteCount() {
+    try {
+        const response = await fetch("http://127.0.0.1:5000/notepad-get-count");
+        const data = await response.json();
+        if (response.ok) {
+            noteCount = data.count;
+            return true;
+        } else {
+            throw new Error(data.error || "Failed to fetch note count.");
+        }
+    } catch (error) {
+        console.error("Error fetching note count:", error);
+        alert("Error fetching note count!");
+        return false;
+    }
+}
+
+// Enable/disable save button based on text input
+textarea.addEventListener("input", () => {
+    saveButton.disabled = !textarea.value.trim();
+});
+
+// Save text and add it to the UI
+async function saveText() {
+    const text = textarea.value.trim();
+    if (text) {
+        const note = document.createElement("textarea");
+        note.classList.add("note");
+        note.innerText = text;
+        savedNotesContainer.appendChild(note);
+
+        const saveSuccessful = await saveToDatabase(text);
+
+        if (saveSuccessful) {
+            textarea.value = "";
+            saveButton.disabled = true;
+            noteCount++; // Increment the local note count
+        }
+    }
+}
+
+// Save note to the database
+async function saveToDatabase(text) {
+    try {
+        const response = await fetch("http://127.0.0.1:5000/notepad-save", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ id: userId, text }),
+        });
+
+        if (response.ok) {
+            alert("Text saved successfully!");
+            return true;
+        } else {
+            const errorData = await response.json();
+            alert(`Error saving text: ${errorData.error}`);
+            return false;
+        }
+    } catch (error) {
+        console.error("Error saving text:", error);
+        alert(`Error: ${error.message}`);
+        return false;
+    }
+}
+
+// Load all notes
+async function loadNotes() {
+
+    for (let index = 1; index <= noteCount; index++) {
+        fetchNoteById(index);
+    }
+    
+}
+
+// Fetch a note by its ID
+async function fetchNoteById(noteId) {
+    try {
+        const response = await fetch("http://127.0.0.1:5000/notepad-get", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ id: userId, noteid: noteId }),
+        });
+
+        if (response.ok) {
+            const { text } = await response.json();
+            if (text) {
+                const note = document.createElement("textarea");
+                note.classList.add("note");
+                note.innerText = text;
+                savedNotesContainer.appendChild(note);
+            }
+        } else {
+            console.error(`Error fetching note ${noteId}:`, response.status);
+        }
+    } catch (error) {
+        console.error("Error fetching note:", error);
+        alert(`Error loading note ${noteId}: ${error.message}`);
+    }
+}
+
+// Initialize the notepad
+async function initializeNotepad() {
+    const idSuccess = await fetchId();
+    const countSuccess = await fetchNoteCount();
+    if (idSuccess && countSuccess) {
+        await loadNotes();
+    } else {
+        alert("Failed to initialize the notepad. Please try again later.");
+    }
+}
+
+// Start initialization
+initializeNotepad();
+
+</script>
+
+
+
+</body>
+</html>

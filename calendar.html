@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Calendar with Real-Time Day Selection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+            margin: 0;
+            flex-direction: column;
+        }
+
+        .calendar {
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            background-color: #fff;
+            padding: 20px;
+            display: flex;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            flex-direction: column;
+        }
+
+        .calendar-header {
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: flex;
+        }
+
+        .weekdays {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+        }
+
+        .day {
+            text-align: center;
+            padding: 30px;
+            cursor: pointer;
+            border-radius: 50%;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .day:hover {
+            background-color: #e0e0e0;
+        }
+
+        .current-day {
+            background-color: #ffcc00;
+            font-weight: bold;
+        }
+
+        .selected {
+            background-color: #007bff;
+            color: white;
+            font-weight: bold;
+        }
+
+        .disabled {
+            color: #ccc;
+            pointer-events: none;
+        }
+
+        .day-about {
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            background-color: #fff;
+            padding: 20px;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: none;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            flex-direction: column;
+        }
+
+        #inp-main {
+            border: none;
+            height: 200px;
+            width: 300px;
+            resize: none;
+            overflow-wrap: break-word;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            border: none;
+            resize: none;
+            outline: none;
+            background: none;
+        }
+        .notepad-container {
+            width: 80%;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            background-color: #4CAF50;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+<div class="notepad-container"><button onclick="window.location.href='services.html'">Return</button></div>
+<div class="day-about" id="day-about">
+    <form id="day-form">
+        <textarea id="inp-main" placeholder="Write a note..."></textarea>
+        <input type="submit" value="Save" style="background-color: rgb(8, 223, 8); border: none; border-radius: 3px; color: white;">
+    </form>
+</div>
+
+<div class="calendar">
+    <div class="calendar-header" id="calendar-header">December 2024</div>
+
+    <div class="weekdays">
+        <div>Sun</div>
+        <div>Mon</div>
+        <div>Tue</div>
+        <div>Wed</div>
+        <div>Thu</div>
+        <div>Fri</div>
+        <div>Sat</div>
+    </div>
+
+    <div class="days" id="days-container"></div>
+</div>
+
+<script>
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth();
+    const currentYear = currentDate.getFullYear();
+
+    let selectedDay = '';
+    let id;
+    let time;
+
+    async function fetchId() {
+        try {
+            const response = await fetch("http://127.0.0.1:5000/data");
+            const data = await response.json();
+            id = data.id;
+        } catch (error) {
+            console.error("Error fetching ID:", error);
+            alert("Error fetching ID!");
+        }
+    }
+
+    async function generateCalendar(year, month) {
+        const daysContainer = document.getElementById('days-container');
+        const calendarHeader = document.getElementById('calendar-header');
+        const firstDayOfMonth = new Date(year, month, 1).getDay();
+        const totalDaysInMonth = new Date(year, month + 1, 0).getDate();
+
+        calendarHeader.textContent = `${new Date(year, month).toLocaleString('default', { month: 'long' })} ${year}`;
+
+        daysContainer.innerHTML = '';
+
+        // Empty cells for the first day of the month
+        for (let i = 0; i < firstDayOfMonth; i++) {
+            const emptyCell = document.createElement('div');
+            emptyCell.classList.add('disabled');
+            daysContainer.appendChild(emptyCell);
+        }
+
+        // Create day cells
+        for (let day = 1; day <= totalDaysInMonth; day++) {
+            const dayCell = document.createElement('div');
+            dayCell.classList.add('day');
+            dayCell.textContent = day;
+            dayCell.setAttribute('data-day', day);
+
+            if (day === currentDate.getDate() && month === currentMonth && year === currentYear) {
+                dayCell.classList.add('current-day');
+            }
+
+            
+            dayCell.addEventListener('click', function () {
+                document.querySelectorAll('.day.selected').forEach(day => {
+                    day.classList.remove('selected');
+                });
+
+                this.classList.add('selected');
+                selectedDay = day;
+                time = `${currentYear}${currentMonth + 1}${dayCell.textContent}`; 
+                
+                // Open day-about section
+                dayabout(dayCell.textContent);
+            });
+
+            daysContainer.appendChild(dayCell);
+        }
+    }
+
+    async function dayabout(num) {
+        const dayAbout = document.getElementById('day-about');
+        const textArea = document.getElementById('inp-main');
+        dayAbout.style.display = 'flex';
+
+        const data = {
+            time: time
+        };
+
+        try {
+            const response = await fetch("http://127.0.0.1:5000/calendar-data", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            const responseData = await response.json();
+            if (responseData.text) {
+                textArea.value = responseData.text;
+               
+            } else {
+                textArea.value = "";
+                
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            alert("An error occurred: " + error.message);
+        }
+    }
+
+    const form = document.getElementById('day-form');
+
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const text = document.getElementById('inp-main').value;
+
+        try {
+            const response = await fetch('http://127.0.0.1:5000/calendar-save', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ id, time, text }),
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                alert("Text saved successfully!");
+            } else {
+                const errorData = await response.json();
+                alert(`Error: ${errorData.message}`);
+            }
+        } catch (error) {
+            alert(`Error: ${error.message}`);
+        }
+    });
+
+    generateCalendar(currentYear, currentMonth);
+
+   
+    fetchId();
+</script>
+
+</body>
+</html>

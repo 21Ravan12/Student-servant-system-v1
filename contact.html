@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #f4f4f4;
+      color: #333;
+      margin: 0;
+      padding: 0;
+    }
+
+   
+    #contact {
+      background-color: white;
+      padding: 40px 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 600px;
+    }
+
+    #contact .contact-form {
+      width: 100%;
+      max-width: 600px;
+      background-color: #fff;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      padding: 30px;
+      border-radius: 10px;
+    }
+
+    #contact h2 {
+      color: #333;
+      font-family: 'Playfair Display', serif;
+      font-size: 2em;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+    }
+
+    input, textarea {
+      padding: 15px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 1em;
+      width: 100%;
+    }
+
+    input:focus, textarea:focus {
+      border-color: #2c3e50;
+      outline: none;
+    }
+
+    button {
+      padding: 15px;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 1.1em;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #2980b9;
+    }
+
+    @media (max-width: 768px) {
+      #contact {
+        padding: 20px;
+        height: auto;
+      }
+
+      #contact .contact-form {
+        padding: 20px;
+      }
+    }
+  .success-message{
+    color: green;
+    font-size: 30px;
+  }
+    
+  </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <a href="#home">MyWebsite</a>
+        </div>
+        <nav>
+            <ul class="nav-links">
+                <li><a href="Main.html">Home</a></li>
+                <li><a href="about.html">About</a></li>
+                <li><a href="services.html">Services</a></li>
+                <li><a href="contact.html">Contact</a></li>
+                <li><a href="Acount.html" class="cta-button">Acount</a></li>
+            </ul>
+        </nav>
+        
+        <div class="hamburger" id="hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </header>
+
+    <!-- Contact Section -->
+    <footer id="contact">
+        <div class="contact-form">
+            <form id="emailForm"  method="POST">
+              <h2>Contact Me</h2>
+                <input id="from" placeholder="Your Email" required>
+                <input id="subject" placeholder="Subject" required>
+                <textarea id="text" placeholder="Your Message" required></textarea>
+                <button type="submit">Send</button>
+            </form>
+            <p id="responseMessage"></p>
+        </div>
+    </footer>
+
+    <footer id="footer_1">
+        <p>&copy; 2024 Your Name. All Rights Reserved.</p>
+    </footer>
+
+    <script src="script.js"></script>
+  <script>
+    function handleSubmit() {
+    const formContainer = document.getElementById('emailForm');
+    const responseMessage = document.getElementById('responseMessage');
+    formContainer.style.display = 'none';
+
+    const successMessage = document.createElement('div');
+    successMessage.classList.add('success-message');
+    successMessage.innerText = 'Your form has been successfully submitted';
+
+    formContainer.parentNode.appendChild(successMessage);
+}
+    const form = document.getElementById('emailForm');
+    const responseMessage = document.getElementById('responseMessage');
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault(); 
+
+      const from = document.getElementById('from').value;
+      const subject = document.getElementById('subject').value;
+      const text = document.getElementById('text').value;
+
+      try {
+        const response = await fetch('http://127.0.0.1:3001/send-email', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ from, subject, text}),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          handleSubmit();
+        } else {
+          const errorData = await response.json();
+          responseMessage.textContent ='Error : ${errorData.message}';
+          responseMessage.style.color = 'red';
+        }
+      } catch (error) {
+        responseMessage.textContent = 'Error: ${error.message}';
+        responseMessage.style.color = 'red';
+      }
+    });
+  </script>
+</body>
+</html>
